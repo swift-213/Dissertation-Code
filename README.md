@@ -32,7 +32,7 @@ The only required input is the VCF file. If you wish to specify specific contigs
 | Flag | Output | Printed to terminal | Output type | Required | 
 |-|-|-|-|-|
 |-o | Number of lines, number of homozygous sites, number of SNPs, number of Indels| Yes | Textfile | No |
-|-o2 | Chromosome, start, end position of all Indels | No | Textfile | No |
+|-o2 | Chromosome, start, end position of all Indels | No | Bed file | No |
 |-o3 | Indels of lengths 1-100 binned by length | Yes | Textfile | No |
 |-o4 | All Indels binned by length in ranges | Yes | Textfile | No |  
 |-o5 | Every specific Indel length binned | No | Textfile | No |
