@@ -71,7 +71,7 @@ python3 SNP_finder.py -inputs -outputs
 | Flag | Input | Required | 
 |-|-|-|
 |-i| VCF file| Yes |
-|-i2|Textfile specifying which contigs to use| Yes |
+|-i2|Textfile specifying which contigs to use| No |
 |--Use_specific_Contigs|If using -i2 also include this flag | No |
 
 ### Outputs
