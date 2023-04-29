@@ -13,19 +13,20 @@ python3 -m pip install -r dissertation_requirements.txt
 ```
 
 # Assembly_info.py
-A script that pulls out number of lines, SNPs, homologous site and Indels. Indel positions are recorded in a [Chromosome, Start, End]. Indels of lengths 1-100 are binned for every length. All Indels are also binned by length in ranges 1-100, 101-200 etc. All specific Indel lengths are also recorded. 
+A script that pulls out number of lines, SNPs, homologous site and Indels for all or a specified list of contigs. Indel positions are recorded in a [Chromosome, Start, End]. Indels of lengths 1-100 are binned for every length. All Indels are also binned by length in ranges 1-100, 101-200 etc. All specific Indel lengths are also recorded. 
 
 ### Usage:
 ```
-python3 Assembly_info.py -inputs -outputs 
+python3 Assembly_info.py -inputs -outputs
 ```
 The only required input is the VCF file. If you wish to specify specific contigs or chromosomes to be run use -i2 and use a textfile with each contig name on a new row.
 
 ### Inputs
-| Flag | Input | Required | 
+| Flags | Input | Required | 
 |-|-|-|
 |-i| VCF file| Yes |
-|-i2|Textfile specifying which contigs to use| Yes |
+|-i2|Textfile specifying which contigs to use| No |
+|--Use_specific_Contigs|If using -i2 also include this flag | No |
 
 ### Outputs
 | Flag | Output | Printed to terminal | Output type | Required | 
@@ -71,6 +72,7 @@ python3 SNP_finder.py -inputs -outputs
 |-|-|-|
 |-i| VCF file| Yes |
 |-i2|Textfile specifying which contigs to use| Yes |
+|--Use_specific_Contigs|If using -i2 also include this flag | No |
 
 ### Outputs
 | Flag | Output | Printed to terminal | Output type | Required | 
