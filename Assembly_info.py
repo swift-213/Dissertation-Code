@@ -86,7 +86,7 @@ if args.input2 and args.Use_specific_Contigs:
                 if Inside_indel == False and truncated_indel == False:
                     Assembly_info['indels'] += 1
                     indel_chrom_start_end=[variant.chrom]
-                    indel_chrom_start_end.append(variant.pos)
+                    indel_chrom_start_end.append(previous)
                     Inside_indel = True
             if int(variant.info['DP']) == 0 and variant.pos != previous + 1:
                 if Inside_indel == True:
@@ -128,7 +128,7 @@ else:
             if Inside_indel == False and truncated_indel == False:
                 Assembly_info['indels'] += 1
                 indel_chrom_start_end=[variant.chrom]
-                indel_chrom_start_end.append(variant.pos)
+                indel_chrom_start_end.append(previous)
                 Inside_indel = True
         if int(variant.info['DP']) == 0 and variant.pos != previous + 1:
             if Inside_indel == True:
@@ -153,22 +153,22 @@ else:
 #For getting indel_lengths 
 Indel_length=[]
 for chrom, start, end in Indel_positions:
-    indel_length = (int(end) - int(start)) + 1
+    indel_length = (int(end) - int(start))
     Indel_length.append(indel_length)
 
 #Feed indel length into here to get 100 and 100000 bp histogram outputs 
-for chrom, start, end in Indel_length:
-    if start in Indel_length_dict_100:
-        Indel_length_dict_100[start] += 1
-    ranges = get_text_range_in_hundreds(start, end)
+for line in Indel_length:
+    if line in Indel_length_dict_100:
+        Indel_length_dict_100[line] += 1
+    ranges = get_text_range_in_hundreds(line)
     if ranges not in Indel_length_dict_10000.keys():
         Indel_length_dict_10000[ranges] = 1
     else:
         Indel_length_dict_10000[ranges]+=1
-    if start in Every_indel_length_dict:
-        Every_indel_length_dict[start] += 1
+    if line in Every_indel_length_dict:
+        Every_indel_length_dict[line] += 1
     else:
-        Every_indel_length_dict[start] = 1
+        Every_indel_length_dict[line] = 1
 
 print(Assembly_info)
 print(Indel_length_dict_100)
@@ -187,7 +187,7 @@ with open(output, 'w') as output_file:
         #output_file.write("\n")
     output_file.close()
 
-#Indel_positions
+#Indel_positions output in bed file format
 with open(output2, 'w') as f:
     for item in Indel_positions:
         f.write(str(item) + "\n")
