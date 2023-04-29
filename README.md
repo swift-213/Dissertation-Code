@@ -1,5 +1,17 @@
 # Dissertation
 
-To download the repository use:
+Scripts written for dissertation on Indel Diveristy
 
-`github clone https://github.com/swift-213/Dissertation.git`
+# Cloning and Requirements
+
+To download the repository + install reqirements use:
+
+```
+github clone https://github.com/swift-213/Dissertation.git
+
+cd Dissertation
+
+python3 -m pip install dissertation_requirements.txt
+
+```
+
