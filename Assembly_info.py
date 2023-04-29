@@ -19,7 +19,7 @@ parser.add_argument("-o2", "--output2", action='store', help="Indel positions", 
 parser.add_argument("-o3", "--output3", action='store', help="Indel 100 dictionary", required=False)
 parser.add_argument("-o4", "--output4", action='store', help="Indel 10,000 dictionary", required=False)
 parser.add_argument("-o5", "--output5", action='store', help="Indel 10,000 dictionary", required=False)
-
+parser.add_argument("--Use_specific_Contigs,", action='store_true', help="Use Specific contigs in -i2 textfile format with each contig on a new line", required=False)
 args = parser.parse_args()
 
 
@@ -36,12 +36,13 @@ output5 = args.output5
 
 
 #Reading in the chrom_file and turning it into a table 
-file1 = open(chrom_file, 'r')
-Lines = file1.readlines()
-#print(Lines)
-chrom=[]
-for line in Lines:
-    chrom.append("{}".format(line.strip()))
+if args.input2 and args.Use_specific_Contigs:
+    file1 = open(chrom_file, 'r')
+    Lines = file1.readlines()
+    #print(Lines)
+    chrom=[]
+    for line in Lines:
+        chrom.append("{}".format(line.strip()))
 
 #print(chrom)
 
@@ -63,8 +64,51 @@ Indel_positions = []
 Inside_indel = False
 truncated_indel = False
 
-for variant in variants:
-    if variant.chrom in chrom:
+if args.input2 and args.Use_specific_Contigs:
+    for variant in variants:
+        if variant.chrom in chrom:
+            if truncated_indel == True:
+                if variant.info['DP'] == 0:
+                    previous = variant.pos
+                    previous_dp = int(variant.info['DP']) 
+                    continue 
+                else:
+                    truncated_indel = False
+            #Get the number of lines
+            if variant.pos != previous:
+                Assembly_info['number_of_lines'] += 1
+            #Get the number of matches
+            if variant.alts == None and variant.info['DP'] != 0:
+                Assembly_info['matches'] += 1
+            if variant.alts != None and variant.info ['DP'] != 0:
+                Assembly_info['mismatches'] += 1
+            if int(variant.info['DP']) == 0 and variant.pos == previous + 1:
+                if Inside_indel == False and truncated_indel == False:
+                    Assembly_info['indels'] += 1
+                    indel_chrom_start_end=[variant.chrom]
+                    indel_chrom_start_end.append(variant.pos)
+                    Inside_indel = True
+            if int(variant.info['DP']) == 0 and variant.pos != previous + 1:
+                if Inside_indel == True:
+                    Assembly_info['indels'] -= 1
+                    Inside_indel = False
+                truncated_indel = True
+                previous = variant.pos
+                previous_dp = int(variant.info['DP']) 
+                continue 
+            if int(variant.info['DP']) != 0 and Inside_indel == True and truncated_indel == False: 
+                if variant.pos == previous + 1:
+                    indel_chrom_start_end.append(previous)
+                    Indel_positions.append(indel_chrom_start_end)
+                    Inside_indel = False 
+                else:
+                    indel_chrom_start_end=[]
+                    Inside_indel = False 
+                    Assembly_info['indels'] -= 1
+        previous = variant.pos
+        previous_dp = int(variant.info['DP']) 
+else:
+    for variant in variants:
         if truncated_indel == True:
             if variant.info['DP'] == 0:
                 previous = variant.pos
@@ -103,9 +147,8 @@ for variant in variants:
                 indel_chrom_start_end=[]
                 Inside_indel = False 
                 Assembly_info['indels'] -= 1
-    previous = variant.pos
-    previous_dp = int(variant.info['DP']) 
-
+        previous = variant.pos
+        previous_dp = int(variant.info['DP']) 
 
 #For getting indel_lengths 
 Indel_length=[]
