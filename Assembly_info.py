@@ -19,7 +19,7 @@ parser.add_argument("-o2", "--output2", action='store', help="Indel positions", 
 parser.add_argument("-o3", "--output3", action='store', help="Indel 100 dictionary", required=False)
 parser.add_argument("-o4", "--output4", action='store', help="Indel 10,000 dictionary", required=False)
 parser.add_argument("-o5", "--output5", action='store', help="Indel 10,000 dictionary", required=False)
-parser.add_argument("--Use_specific_Contigs,", action='store_true', help="Use Specific contigs in -i2 textfile format with each contig on a new line", required=False)
+parser.add_argument("--Use_specific_Contigs", action='store_true', help="Use Specific contigs in -i2 textfile format with each contig on a new line", required=False)
 args = parser.parse_args()
 
 
