@@ -11,7 +11,7 @@ github clone https://github.com/swift-213/Dissertation.git
 
 cd Dissertation
 
-python3 -m pip install dissertation_requirements.txt
+python3 -m pip install -r dissertation_requirements.txt
 
 ```
 
