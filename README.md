@@ -1,6 +1,6 @@
 # Dissertation
 
-Scripts written for dissertation on Indel Diveristy
+Scripts I have written in the process my dissertation on Indel Diveristy
 
 # Cloning and Requirements
 
