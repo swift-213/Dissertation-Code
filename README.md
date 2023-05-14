@@ -1,5 +1,5 @@
 # Dissertation
-Scripts I have written in the process my dissertation on Indel Diveristy
+Scripts I have written in the process my dissertation: Characterising indel diversity in Lepidoptera to infer the evolutionary effects of genetic drift and selection
 
 ## Cloning and Requirements
 To download the repository + install reqirements use:
