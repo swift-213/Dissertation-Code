@@ -12,7 +12,7 @@ cd Dissertation
 python3 -m pip install -r Dissertation_requirements.txt
 ```
 
-# Assembly_info.py
+# Assembly_information.py
 A script that pulls out number of lines, SNPs, homologous site and Indels for all or a specified list of contigs. Indel positions are recorded in a [Chromosome, Start, End]. Indels of lengths 1-100 are binned for every length. All Indels are also binned by length in ranges 1-100, 101-200 etc. All specific Indel lengths are also recorded. 
 
 ### Usage:
