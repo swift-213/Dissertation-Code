@@ -59,6 +59,25 @@ python3 exon_R_indel_sorter.py -inputs -outputs
 |-o2 | All Indels binned by length in ranges | Yes | Textfile | No |  
 
 If no output file is specified with a flag the outputs with Yes in printed to terminal will print outputs to terminal but no outputs will be saved
+# Repeat_finder.py
+A script that finds masked repetitive regions in fasta files
+
+### Usage:
+```
+python3 Repeat_finder.py -inputs -outputs 
+```
+### Inputs
+| Flag | Input | Required | 
+|-|-|-|
+|-i| reference fasta file| Yes |
+|-i2|Textfile specifying which contigs to use| No |
+
+### Outputs
+| Flag | Output | Printed to terminal | Output type | Required | 
+|-|-|-|-|-|
+|-o | Chromosome, start and end position of masked repeat | No | Textfile | No |
+
+If no output file is specified with a flag the outputs with Yes in printed to terminal will print outputs to terminal but no outputs will be saved
 
 # SNP_finder.py
 A script that finds polymorphic bases between two haplotypes on specified contigs
