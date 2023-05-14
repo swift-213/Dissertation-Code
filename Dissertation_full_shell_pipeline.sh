@@ -1,20 +1,16 @@
-#harddrive path:
-cd /Volumes/Seagate/Frankie_DTOL_lep_project/
+#A full automated pipeline of the project. File paths are arbritaray and would differ depending on the location of the files on the computer the code was run on. This is a blank version to show the pipeline of work.
 
-#One Drive path:
-cd /Users/frankieswift/OneDrive/Uni/4th_year/Honours_project/
+#the sed steps refer to formatting steps that get the outputs of the python script ready for use in further python scripts are R scripts used for further analysis.
 
 #Aligning and calling variants for the alternative haplotype. Creating the vcf plus filtered and alterntative chromosome versions
     #Manual
-        asm=ASM10
-        alt_assembly=ilOmpLuno1.1
-        alt_GCA=GCA_916610225.1
-        ref_assembly=ilOmpLuno1.1
-        ref_GCA=GCA_916610215.1
+        alt_assembly=
+        alt_GCA=
+        ref_assembly=
+        ref_GCA=
 
-    #Looped sets
-        set=set6
-        big_textfile=/Users/frankieswift/OneDrive/Uni/4th_year/Honours_project/text_files/${set}_full
+    #Looped sets, create a textfile of your assembiles and GCA numbers to automatically loop through the code.
+        big_textfile=path/to/text/file/needed/here
         for line in $(cat ${big_textfile})
             do 
             alt_assembly=$(echo ${line} | cut -d ";" -f 1 )
@@ -22,39 +18,37 @@ cd /Users/frankieswift/OneDrive/Uni/4th_year/Honours_project/
             ref_assembly=$(echo ${line} | cut -d ";" -f 3 )
             ref_GCA=$(echo ${line} | cut -d ";" -f 4 )
             echo ${alt_assembly} ${alt_GCA} ${ref_assembly} ${ref_GCA}
-            asm=ASM10
 
             #Map the alt to the reference assemblies and make bam file
-            output=/Users/frankieswift/OneDrive/Uni/4th_year/Honours_project/outputs/minimap2_output/${alt_assembly}_alignment.bam 
-            alternate=/Volumes/Seagate/Frankie_DTOL_lep_project/Fasta_files/${alt_GCA}/ncbi_dataset/data/${alt_GCA}/${alt_GCA}_${alt_assembly}_alternate_haplotype_genomic.fna
-            ref=/Volumes/Seagate/Frankie_DTOL_lep_project/Fasta_files/${ref_GCA}/ncbi_dataset/data/${ref_GCA}/${ref_GCA}_${ref_assembly}_genomic.fna
+            output=path/to/output/file
+            alternate=path/to/alternative/haplotype/fasta
+            ref=path/to/reference/haplotype/fasta
             minimap2 -ax asm10 ${ref} ${alternate} | samtools view -Sb > ${output} 
 
-            output=/Users/frankieswift/OneDrive/Uni/4th_year/Honours_project/outputs/minimap2_output/${alt_assembly}_alignment.bam 
-            samtools_output=/Users/frankieswift/OneDrive/Uni/4th_year/Honours_project/outputs/samtools_output/${alt_assembly}_alignment.sort.bam
+            output=path/to/output/file/from/minimap2
+            samtools_output=path/to/samtools/output/file
             samtools sort ${output} > ${samtools_output}
             samtools index ${samtools_output}
 
-            bcftools mpileup -f ${ref} --min-MQ 60 --annotate FORMAT/DP ${samtools_output} > ${samtools_output%.sort.bam}.mpileup
-            bgzip ${samtools_output%.sort.bam}.mpileup
-            bcftools index -f ${samtools_output%.sort.bam}.mpileup.gz
+            bcftools mpileup -f ${ref} --min-MQ 60 --annotate FORMAT/DP ${samtools_output} > ${samtools_output}.mpileup
+            bgzip ${samtools_output}.mpileup
+            bcftools index -f ${samtools_output}.mpileup.gz
 
             #Turning VCF into bam 
-            vcf_output=/Users/frankieswift/OneDrive/Uni/4th_year/Honours_project/outputs/vcf_files/${alt_assembly}_alignment_${asm}_mcall.vcf
-            bcftools call -m --ploidy 1 ${samtools_output%.sort.bam}.mpileup.gz | bgzip > ${vcf_output}
+            vcf_output=path/to/bcftools/output/VCF/file/you/are/creating/here
+            bcftools call -m --ploidy 1 ${samtools_output}.mpileup.gz | bgzip > ${vcf_output}
             bcftools index ${vcf_output}.gz
             
 
             #Filtering the VCF to DP=1 
-            vcf_depth_filter=/Users/frankieswift/OneDrive/Uni/4th_year/Honours_project/outputs/vcf_depth_filter/${alt_assembly}_alignment_${asm}_mcall_DP1.vcf.gz
+            vcf_depth_filter=path/to/bcftools/filter/output/
             bcftools filter -i 'FORMAT/DP <= 1 & INFO/DP<=1' ${vcf_output} | bgzip > ${vcf_depth_filter}
             bcftools index ${vcf_depth_filter}
     
         done
         
         #Getting the alternative vcf numbered names rather than long name for genome annotation analysis <- REQUIRES MANUAL INPUT TO CHECK RENAME FILE 
-        set=set6
-        big_textfile=/Users/frankieswift/OneDrive/Uni/4th_year/Honours_project/text_files/${set}_full
+        big_textfile=path/to/text/file/needed/here
         for line in $(cat ${big_textfile})
             do 
             alt_assembly=$(echo ${line} | cut -d ";" -f 1 )
@@ -63,29 +57,25 @@ cd /Users/frankieswift/OneDrive/Uni/4th_year/Honours_project/
             ref_GCA=$(echo ${line} | cut -d ";" -f 4 )
             echo ${alt_assembly} ${alt_GCA} ${ref_assembly} ${ref_GCA}
 
-            output=/Users/frankieswift/OneDrive/Uni/4th_year/Honours_project/outputs/minimap2_output/${alt_assembly}_alignment.bam 
-            alternate=/Volumes/Seagate/Frankie_DTOL_lep_project/Fasta_files/Fasta_files/${alt_GCA}/ncbi_dataset/data/${alt_GCA}/${alt_GCA}_${alt_assembly}_alternate_haplotype_genomic.fna
-            ref=/Volumes/Seagate/Frankie_DTOL_lep_project/Fasta_files/Fasta_files/${ref_GCA}/ncbi_dataset/data/${ref_GCA}/${ref_GCA}_${ref_assembly}_genomic.fna
-
-            vcf_depth_filter=/Users/frankieswift/OneDrive/Uni/4th_year/Honours_project/outputs/vcf_depth_filter/${alt_assembly}_alignment_${asm}_mcall_DP1.vcf.gz
-            vcf_depth_filter_chrom_alt=/Users/frankieswift/OneDrive/Uni/4th_year/Honours_project/outputs/vcf_depth_filter/${alt_assembly}_alignment_${asm}_mcall_DP1_chrom_alt.vcf
-
+            ref=path/to/reference/haplotype/fasta
+           
             #get index, get first column
-            rename=/Users/frankieswift/Library/CloudStorage/OneDrive-Personal/Uni/4th_year/Honours_project/text_files/${alt_assembly}_rename.txt
+            rename=path/to/rename/text/file/with/long/chrom/names/then/tab/numeric/chrom/names
             samtools faidx ${ref}
                 
             #add row number column
             cut -f1 ${ref}.fai | awk '{print $0,NR}' | > ${rename}
-            cp ${rename} /Users/frankieswift/OneDrive/Uni/4th_year/Honours_project/text_files/${set}/${alt_assembly}_chrom_num.txt
+            cp ${rename} path/to/create/a/second/version/of/rename/file/that/you/will/alter/to/have/just/the/number/chroms/
             
-            Num_text=/Users/frankieswift/OneDrive/Uni/4th_year/Honours_project/text_files/${set}/${alt_assembly}_chrom_num.txt
+            Num_text=path/to/create/a/second/version/of/rename/file/that/you/will/alter/to/have/just/the/number/chroms/
+            #you have to check that they rename numbers will be correct. If there are some unscaffolded contigs in the middle of the scaffolded ones then the numbers will be wrong!
+            #For num text you have to remove all the long chrom names and just leave the numbers of autosomes that you want to analyse in later steps!
             code ${Num_text}
             code ${rename}
         done
     
         #use bcftools to change name in vcf file - Check rename file first!
-        set=set6
-        big_textfile=/Users/frankieswift/OneDrive/Uni/4th_year/Honours_project/text_files/${set}_full.txt
+        big_textfile=path/to/text/file
         for line in $(cat ${big_textfile})
             do 
             alt_assembly=$(echo ${line} | cut -d ";" -f 1 )
@@ -94,9 +84,9 @@ cd /Users/frankieswift/OneDrive/Uni/4th_year/Honours_project/
             ref_GCA=$(echo ${line} | cut -d ";" -f 4 )
             echo ${alt_assembly} ${alt_GCA} ${ref_assembly} ${ref_GCA}
             
-            vcf_depth_filter=/Users/frankieswift/OneDrive/Uni/4th_year/Honours_project/outputs/vcf_depth_filter/${alt_assembly}_alignment_${asm}_mcall_DP1.vcf.gz
-            vcf_depth_filter_chrom_alt=/Users/frankieswift/OneDrive/Uni/4th_year/Honours_project/outputs/vcf_depth_filter/${alt_assembly}_alignment_${asm}_mcall_DP1_chrom_alt.vcf
-            rename=/Users/frankieswift/Library/CloudStorage/OneDrive-Personal/Uni/4th_year/Honours_project/text_files/${alt_assembly}_rename.txt
+            vcf_depth_filter=path/to/bcftools/filter/output/
+            vcf_depth_filter_chrom_alt=path/to/bcftools/filter/alternative/chromosome/name/output/
+            rename=path/to/rename/text/file/with/long/chrom/names/then/tab/numeric/chrom/names
             
             bcftools annotate ${vcf_depth_filter} --rename-chrs ${rename} > ${vcf_depth_filter_chrom_alt}
             bgzip ${vcf_depth_filter_chrom_alt}
@@ -104,12 +94,7 @@ cd /Users/frankieswift/OneDrive/Uni/4th_year/Honours_project/
         done
 
 #Getting four fold degenerate sites for whole aligned haplotypes:
-    for i in {1..8} 
-        do 
-        echo $i
-        set=set$i
-        echo $set
-        big_textfile=/Users/frankieswift/OneDrive/Uni/4th_year/Honours_project/text_files/${set}_full.txt
+        big_textfile=path/to/textfile/
         for line in $(cat ${big_textfile})
             do 
             alt_assembly=$(echo ${line} | cut -d ";" -f 1 )
@@ -119,103 +104,89 @@ cd /Users/frankieswift/OneDrive/Uni/4th_year/Honours_project/
             echo ${alt_assembly} ${alt_GCA} ${ref_assembly} ${ref_GCA}
             asm=ASM10
         
-            code_path=/Users/frankieswift/OneDrive/Uni/4th_year/Honours_project/genomics_general/
-            rename=/Users/frankieswift/Library/CloudStorage/OneDrive-Personal/Uni/4th_year/Honours_project/text_files/${alt_assembly}_rename.txt
-            rename_four=/Users/frankieswift/Library/CloudStorage/OneDrive-Personal/Uni/4th_year/Honours_project/text_files/${alt_assembly}_rename.txt
-            gff=/Volumes/Seagate/Frankie_DTOL_lep_project/gff/files/${ref_GCA}-genes.gff3
-            ref=/Volumes/Seagate/Frankie_DTOL_lep_project/Fasta_files/${ref_GCA}/ncbi_dataset/data/${ref_GCA}/${ref_GCA}_${ref_assembly}_genomic.fna
-            vcf_depth_filter_chrom_alt=/Users/frankieswift/OneDrive/Uni/4th_year/Honours_project/outputs/vcf_depth_filter/${alt_assembly}_alignment_${asm}_mcall_DP1_chrom_alt.vcf.gz
-            four_D_output=/Users/frankieswift/OneDrive/Uni/4th_year/Honours_project/outputs/fourD_sites/${alt_assembly}_coding_site_types.tsv.gz
-            four_D_bed_output=/Users/frankieswift/OneDrive/Uni/4th_year/Honours_project/outputs/fourD_sites/${alt_assembly}_fourDsites.bed
+            code_path=path/to/where/scripts/are/stored
+            rename=path/to/rename/text/file/with/long/chrom/names/then/tab/numeric/chrom/names
+            gff=path/to/genome/annotation/file/from/DTOL
+            ref=path/to/reference/haplotype/fasta
+            vcf_depth_filter_chrom_alt=path/to/bcftools/filter/alternative/chromosome/name/output/
+            four_D_output=path/to/4D/out/put
+            four_D_bed_output=path/to/4D/bed/file/output
 
-            python3 ${code_path}codingSiteTypes.py -a ${gff} -f gff3 -r ${ref} -v ${vcf_depth_filter_chrom_alt} --scaffoldLookup ${rename_four} --ignoreConflicts --useAnnotationScaffoldNames | bgzip > ${four_D_output}
+            python3 ${code_path}codingSiteTypes.py -a ${gff} -f gff3 -r ${ref} -v ${vcf_depth_filter_chrom_alt} --scaffoldLookup ${rename} --ignoreConflicts --useAnnotationScaffoldNames | bgzip > ${four_D_output}
             
             #Turns the output into a bed file format
             gunzip -c  ${four_D_output} | awk 'BEGIN {OFS="\t"}; $5=="4" {print($1"\t"$2-1"\t"$2)}'|  > ${four_D_bed_output}
 
             #Creates a vcf file of 4D positions only
-            output=/Users/frankieswift/OneDrive/Uni/4th_year/Honours_project/outputs/fourD_sites/vcfs/${alt_assembly}_fourDsites.vcf
+            output=output/to4D/site/vcf/files
             bedtools intersect -wa -a ${vcf_depth_filter_chrom_alt} -b ${four_D_bed_output} -header > $output 
         done
 
         #getting 4D snp positions:
-        big_textfile=/Users/frankieswift/OneDrive/Uni/4th_year/Honours_project/text_files/${set}_full
+        big_textfile=path/to/textfile/
         for line in $(cat ${big_textfile})
             do 
             alt_assembly=$(echo ${line} | cut -d ";" -f 1 )
             set=$(echo ${line} | cut -d ";" -f 2 )
             echo ${alt_assembly} ${set}
             asm=ASM10
-            code_path=/Users/frankieswift/OneDrive/Uni/4th_year/Honours_project
-            vcf_fourD=/Users/frankieswift/OneDrive/Uni/4th_year/Honours_project/outputs/fourD_sites/vcfs/${alt_assembly}_fourDsites.vcf
-            Assembly_info=/Users/frankieswift/Library/CloudStorage/OneDrive-Personal/Uni/4th_year/Honours_project/outputs/fourD_sites/snps/${alt_assembly}_fourD_snps.txt
-            chrom_text=/Users/frankieswift/OneDrive/Uni/4th_year/Honours_project/text_files/${alt_assembly}_chrom_num.txt
-        
-            
-            python3 ${code_path}/fourD_snp_finder.py -i ${vcf_fourD} -i2 ${chrom_text} -o ${Assembly_info} 
+            code_path=path/to/where/scripts/are/stored
+            vcf_fourD=output/to4D/site/vcf/files
+            Assembly_info=path/to/assembly/information/output/
+            chrom_text=path/to/textfile/with/list/of/autosome/names/to/be/analysed 
+
+            python3 ${code_path}/Snp_finder.py -i ${vcf_fourD} -i2 ${chrom_text} -o ${Assembly_info} 
 
             #Gets the output ready for analysis in R
-            Assembly_info=/Users/frankieswift/Library/CloudStorage/OneDrive-Personal/Uni/4th_year/Honours_project/outputs/fourD_sites/snps/${alt_assembly}_fourD_snps.txt
-            Assembly_info_sed=/Users/frankieswift/Library/CloudStorage/OneDrive-Personal/Uni/4th_year/Honours_project/outputs/fourD_sites/snps/${alt_assembly}_fourD_snps_sed.txt
+            Assembly_info=path/to/assembly/information/output/
+            Assembly_info_sed=path/to/assembly/information/output/sedded
             sed 's/\[//g' ${Assembly_info} | sed 's/\]//g' | > ${Assembly_info_sed}
 
 
 #Autosome analysis 
-    for i in {1..8} 
-    do 
-    echo $i
-    set=set$i
-    echo $set
-    set=set5
-    textfile=/Users/frankieswift/OneDrive/Uni/4th_year/Honours_project/text_files/${set}.txt
-    asm=ASM10
+    textfile=path/to/textfile/
     for line in $(cat ${textfile})
         do 
         alt_assembly=$(echo ${line} | cut -d ";" -f 1 )
         echo ${alt_assembly}
    
-        code_path=/Users/frankieswift/OneDrive/Uni/4th_year/Honours_project
-        vcf_depth_filter_chrom_alt=/Users/frankieswift/OneDrive/Uni/4th_year/Honours_project/outputs/vcf_depth_filter/${alt_assembly}_alignment_${asm}_mcall_DP1_chrom_alt.vcf.gz
-        Assembly_info=/Users/frankieswift/OneDrive/Uni/4th_year/Honours_project/outputs/Assembly_info/${alt_assembly}_assembly_info.txt
-        indel_finder=/Users/frankieswift/Library/CloudStorage/OneDrive-Personal/Uni/4th_year/Honours_project/outputs/IndelFinder/${alt_assembly}_IndelFinder_no_CDS_trunc_new.txt
-        indel_binner_100=/Users/frankieswift/Library/CloudStorage/OneDrive-Personal/Uni/4th_year/Honours_project/outputs/IndelBinner/hundred/${alt_assembly}_IndelBinner_100_no_CDS_trunc.txt
-        indel_binner_10000=/Users/frankieswift/Library/CloudStorage/OneDrive-Personal/Uni/4th_year/Honours_project/outputs/IndelBinner/ten_thousand/${alt_assembly}_IndelBinner_10000_no_CDS_trunc.txt
-        chrom_text=/Users/frankieswift/OneDrive/Uni/4th_year/Honours_project/text_files/${set}/${alt_assembly}_chrom_num.txt
-        every_indel_length=/Users/frankieswift/Library/CloudStorage/OneDrive-Personal/Uni/4th_year/Honours_project/outputs/IndelBinner/all_indel_lengths/${alt_assembly}_IndelBinner_all_pos.txt
-        
-        python3 ${code_path}/full_script_reborn.py -i ${vcf_depth_filter_chrom_alt} -i2 ${chrom_text} -o ${Assembly_info} -o2 ${indel_finder} -o3 ${indel_binner_100} -o4 ${indel_binner_10000} -o5 ${every_indel_length}
+        code_path=path/to/where/scripts/are/stored
+        vcf_depth_filter_chrom_alt=path/to/bcftools/filter/alternative/chromosome/name/output/
+        Assembly_info=path/to/assembly/information/output/
+        indel_finder=path/to/output/
+        indel_binner_100=path/to/output/
+        indel_binner_10000=path/to/output/
+        chrom_text=path/to/textfile/with/list/of/autosome/names/to/be/analysed 
+        every_indel_length=path/to/output/
+
+        python3 ${code_path}/Assembly_information.py -i ${vcf_depth_filter_chrom_alt} -i2 ${chrom_text} -o ${Assembly_info} -o2 ${indel_finder} -o3 ${indel_binner_100} -o4 ${indel_binner_10000} -o5 ${every_indel_length}
 
         #Getting the outputs ready for use in R
-        Assembly_info=/Users/frankieswift/OneDrive/Uni/4th_year/Honours_project/outputs/Assembly_info/${alt_assembly}_assembly_info.txt
-        Assembly_info_sed=/Users/frankieswift/OneDrive/Uni/4th_year/Honours_project/outputs/Assembly_info/${alt_assembly}_assembly_info_sed.txt
+        Assembly_info=path/to/assembly/output/
+        Assembly_info_sed=path/to/assembly/output/sedded/output
         sed 's/\[//g' ${Assembly_info} | sed 's/\]//g' | > ${Assembly_info_sed}
 
-        indel_finder=/Users/frankieswift/Library/CloudStorage/OneDrive-Personal/Uni/4th_year/Honours_project/outputs/IndelFinder/${alt_assembly}_IndelFinder_new.txt
-        indel_finder_sed=/Users/frankieswift/Library/CloudStorage/OneDrive-Personal/Uni/4th_year/Honours_project/outputs/IndelFinder/${alt_assembly}_IndelFinder_new_sed.txt
+        indel_finder=path/to/output/
+        indel_finder_sed=path/to/assembly/output/sedded/output
         sed 's/\[//g' ${indel_finder} | sed 's/\]//g' | > ${indel_finder_sed}
 
 
-        indel_binner_100=/Users/frankieswift/Library/CloudStorage/OneDrive-Personal/Uni/4th_year/Honours_project/outputs/IndelBinner/hundred/${alt_assembly}_IndelBinner_100_no_CDS_trunc.txt
-        indel_binner_100_sed=/Users/frankieswift/Library/CloudStorage/OneDrive-Personal/Uni/4th_year/Honours_project/outputs/IndelBinner/hundred/${alt_assembly}_IndelBinner_100_sed.txt
+        indel_binner_100=path/to/output/
+        indel_binner_100_sed=path/to/assembly/output/sedded/output
         sed 's/{//g' ${indel_binner_100} | sed 's/}//g' | sed 's/:/,/g' | sed 's/'\''//g' | > ${indel_binner_100_sed}
         
-        indel_binner_10000=/Users/frankieswift/Library/CloudStorage/OneDrive-Personal/Uni/4th_year/Honours_project/outputs/IndelBinner/ten_thousand/${alt_assembly}_IndelBinner_10000_no_CDS_trunc.txt
-        indel_binner_10000_sed=/Users/frankieswift/Library/CloudStorage/OneDrive-Personal/Uni/4th_year/Honours_project/outputs/IndelBinner/ten_thousand/${alt_assembly}_IndelBinner_10000_no_CDS_trunc_sed.txt
+        indel_binner_10000=path/to/output/
+        indel_binner_10000_sed=path/to/assembly/output/sedded/output
         sed 's/{//g' ${indel_binner_10000} | sed 's/}//g' | sed 's/:/,/g' | sed 's/'\''//g' | > ${indel_binner_10000_sed}
 
-        every_indel_length=/Users/frankieswift/Library/CloudStorage/OneDrive-Personal/Uni/4th_year/Honours_project/outputs/IndelBinner/all_indel_lengths/${alt_assembly}_IndelBinner_all_pos.txt
-        every_indel_length_sed=/Users/frankieswift/Library/CloudStorage/OneDrive-Personal/Uni/4th_year/Honours_project/outputs/IndelBinner/all_indel_lengths/${alt_assembly}_IndelBinner_all_pos_sed.txt
+        every_indel_length=path/to/output/
+        every_indel_length_sed=path/to/assembly/output/sedded/output
         sed 's/{//g' ${every_indel_length} | sed 's/}//g' | sed 's/:/,/g' | sed 's/'\''//g' | > ${every_indel_length_sed}
     done
     done
 #CDS analysis 
     #Pull CDS pos out of gff file:
-        for i in {1..8} 
-        do 
-        echo $i
-        set=set$i
-        echo $set
-        big_textfile=/Users/frankieswift/OneDrive/Uni/4th_year/Honours_project/text_files/${set}_full.txt
+        big_textfile=path/to/textfile/
 
         for line in $(cat ${big_textfile})
             do 
@@ -223,16 +194,16 @@ cd /Users/frankieswift/OneDrive/Uni/4th_year/Honours_project/
             ref_GCA=$(echo ${line} | cut -d ";" -f 4 )
             echo ${alt_assembly} ${ref_GCA}
        
-            gff=/Volumes/Seagate/Frankie_DTOL_lep_project/gff/files/${ref_GCA}-genes.gff3
-            final_file=/Volumes/Seagate/Frankie_DTOL_lep_project/gff/exon_only_files/${alt_assembly}_CDS_info.bed
-            final_file_short=/Volumes/Seagate/Frankie_DTOL_lep_project/gff/exon_only_files/${alt_assembly}_CDS.bed
-            final_file_sorted=/Volumes/Seagate/Frankie_DTOL_lep_project/gff/exon_only_files/${alt_assembly}_CDS_info_sorted.bed
-            final_file_sorted_merged=/Volumes/Seagate/Frankie_DTOL_lep_project/gff/exon_only_files/${alt_assembly}_CDS_info_sorted_merged.bed
-            final_file_sorted_short=/Volumes/Seagate/Frankie_DTOL_lep_project/gff/exon_only_files/${alt_assembly}_CDS_info_sorted_short.bed
-            final_file_sorted_merged_short=/Volumes/Seagate/Frankie_DTOL_lep_project/gff/exon_only_files/${alt_assembly}_CDS_info_sorted_merged_short.bed
-            #pull out all the exon rows
+            gff=path/to/genome/annotation/file/from/DTOL
+            final_file=path/to/output/
+            final_file_short=path/to/output/
+            final_file_sorted=path/to/output/
+            final_file_sorted_merged=path/to/output/
+            final_file_sorted_short=path/to/output/
+            final_file_sorted_merged_short=path/to/output/
+            #pull out all the cds rows
                 awk '{if($3=="CDS") print $0}' ${gff} > all_exons.bed
-            #remove and append column 1 and 9 - look at rishi code and change the chrom names in one of the files so they match 
+            #remove and append column 1 and 9
                 awk '{if($1!="Z") print $0}' all_exons.bed > all_exons_1.bed
                 awk '{if($1!="W") print $0}' all_exons_1.bed > all_exons_2.bed
                 awk '{if($1!="MT") print $0}' all_exons_2.bed > all_exons_3.bed
@@ -253,95 +224,90 @@ cd /Users/frankieswift/OneDrive/Uni/4th_year/Honours_project/
 
     #SNP CDS analysis
         #Making the CDS included file for the vcf with the number chrom 
-            textfile=/Users/frankieswift/OneDrive/Uni/4th_year/Honours_project/text_files/all_gff_sets.txt
+            textfile=path/to/textfile/
             for line in $(cat ${textfile})
                 do 
                 alt_assembly=$(echo ${line} | cut -d ";" -f 1 )
                 set=$(echo ${line} | cut -d ";" -f 2 )
                 echo ${alt_assembly} ${set}
 
-            
-                asm=ASM10
-                exon_file=/Users/frankieswift/OneDrive/Uni/4th_year/Honours_project/gff/exon_only_files/${alt_assembly}_CDS_info_sorted_merged_short.bed
-                vcf_depth_filter_chrom_alt=/Users/frankieswift/OneDrive/Uni/4th_year/Honours_project/outputs/vcf_depth_filter/${alt_assembly}_alignment_${asm}_mcall_DP1_chrom_alt.vcf.gz
-                output_include=/Users/frankieswift/Library/CloudStorage/OneDrive-Personal/Uni/4th_year/Honours_project/outputs/exons_included_SNP/${alt_assembly}_alignment_${asm}_mcall_DP1_chrom_alt_CDS_in.vcf
-                output_exclude=/Users/frankieswift/Library/CloudStorage/OneDrive-Personal/Uni/4th_year/Honours_project/outputs/exons_removed_SNP/${alt_assembly}_alignment_${asm}_mcall_DP1_chrom_alt_CDS_out.vcf
+        
+                CDS_file=path/to/file/made/in/previous/step/with/gff/info
+                vcf_depth_filter_chrom_alt=path/to/bcftools/filter/alternative/chromosome/name/output/
+                CDS_include=path/to/cds/included/vcf/file/
 
                 bcftools view ${vcf_depth_filter_chrom_alt} --targets-file ${exon_file} -o ${output_include}
                 bgzip -f ${output_include}
                 bcftools index ${output_include}.gz
                 
                 #Getting snps for whole cds regions - need for indel diversity denominator 
-                code_path=/Users/frankieswift/OneDrive/Uni/4th_year/Honours_project
-                output_include=/Users/frankieswift/Library/CloudStorage/OneDrive-Personal/Uni/4th_year/Honours_project/outputs/exons_included_SNP/${alt_assembly}_alignment_${asm}_mcall_DP1_chrom_alt_CDS_in.vcf
-                Assembly_info=/Users/frankieswift/Library/CloudStorage/OneDrive-Personal/Uni/4th_year/Honours_project/outputs/exons_included_SNP/${alt_assembly}_cds_total_snps.txt
-                chrom_text=/Users/frankieswift/OneDrive/Uni/4th_year/Honours_project/text_files/${set}/${alt_assembly}_chrom_num.txt
+                code_path=path/to/where/scripts/are/stored
+                CDS_include=path/to/cds/included/vcf/file/
+                Assembly_info=path/to/assembly/information/output/
+                chrom_text=path/to/textfile/with/list/of/autosome/names/to/be/analysed 
             
-                python3 ${code_path}/fourD_snp_finder.py -i ${output_include}.gz -i2 ${chrom_text} -o ${Assembly_info} 
+                python3 ${code_path}/Snp_finder.py -i ${output_include}.gz -i2 ${chrom_text} -o ${Assembly_info} 
 
-                Assembly_info=/Users/frankieswift/Library/CloudStorage/OneDrive-Personal/Uni/4th_year/Honours_project/outputs/exons_included_SNP/${alt_assembly}_cds_total_snps.txt
-                Assembly_info_sed=/Users/frankieswift/Library/CloudStorage/OneDrive-Personal/Uni/4th_year/Honours_project/outputs/exons_included_SNP/${alt_assembly}_cds_total_snps_sed.txt
-                sed 's/\[//g' ${Assembly_info} | sed 's/\]//g' | > ${Assembly_info_sed}
+                Assembly_info=path/to/assembly/information/output/
+                Assembly_info_sed=path/to/output/sed/output
+                  sed 's/\[//g' ${Assembly_info} | sed 's/\]//g' | > ${Assembly_info_sed}
 
 
                 #getting four d positions in CDS and then snps at the four d positions 
-                four_D_bed_output=/Users/frankieswift/OneDrive/Uni/4th_year/Honours_project/outputs/fourD_sites/${alt_assembly}_fourDsites.bed
-                output=/Users/frankieswift/Library/CloudStorage/OneDrive-Personal/Uni/4th_year/Honours_project/outputs/exons_included_SNP/${alt_assembly}_fourD_sites_CDS.vcf
+                four_D_bed_output=output/to4D/site/bed/file
+                output=path/to/output/
                 bedtools intersect -wa -a ${output_include}.gz -b ${four_D_bed_output} -header > $output 
                 
 
-                code_path=/Users/frankieswift/OneDrive/Uni/4th_year/Honours_project
-                vcf_fourD=/Users/frankieswift/Library/CloudStorage/OneDrive-Personal/Uni/4th_year/Honours_project/outputs/exons_included_SNP/${alt_assembly}_fourD_sites_CDS.vcf
-                Assembly_info=/Users/frankieswift/Library/CloudStorage/OneDrive-Personal/Uni/4th_year/Honours_project/outputs/exons_included_SNP/${alt_assembly}_fourD_snps.txt
-                chrom_text=/Users/frankieswift/OneDrive/Uni/4th_year/Honours_project/text_files/${set}/${alt_assembly}_chrom_num.txt
+                code_path=path/to/where/scripts/are/stored
+                vcf_fourD=output/to4D/site/vcf/files
+                Assembly_info=path/to/assembly/information/output/
+                chrom_text=path/to/textfile/with/list/of/autosome/names/to/be/analysed 
             
                 
-                python3 ${code_path}/fourD_snp_finder.py -i ${vcf_fourD} -i2 ${chrom_text} -o ${Assembly_info} 
+                python3 ${code_path}/Snp_finder.py -i ${vcf_fourD} -i2 ${chrom_text} -o ${Assembly_info} 
 
 
-                Assembly_info=/Users/frankieswift/Library/CloudStorage/OneDrive-Personal/Uni/4th_year/Honours_project/outputs/exons_included_SNP/${alt_assembly}_fourD_snps.txt
-                Assembly_info_sed=/Users/frankieswift/Library/CloudStorage/OneDrive-Personal/Uni/4th_year/Honours_project/outputs/exons_included_SNP/${alt_assembly}_fourD_snps_sed.txt
+                Assembly_info=path/to/assembly/information/output/
+                Assembly_info_sed=path/to/assembly/output/sedded/output
                 sed 's/\[//g' ${Assembly_info} | sed 's/\]//g' | > ${Assembly_info_sed}
     #pulling assembly information for CDS region
-        set=set3
-        textfile=/Users/frankieswift/OneDrive/Uni/4th_year/Honours_project/text_files/${set}.txt
+        textfile=path/to/textfile/
         for line in $(cat ${textfile})
             do 
             alt_assembly=$(echo ${line} | cut -d ";" -f 1 )
             echo ${alt_assembly}
         
-            asm=ASM10
-            exon_file=/Users/frankieswift/OneDrive/Uni/4th_year/Honours_project/gff/exon_only_files/${alt_assembly}_exon_info_sorted_merged.bed
-            vcf_depth_filter_chrom_alt=/Users/frankieswift/OneDrive/Uni/4th_year/Honours_project/outputs/vcf_depth_filter/${alt_assembly}_alignment_${asm}_mcall_DP1_chrom_alt.vcf.gz
-            output_include=/Users/frankieswift/Library/CloudStorage/OneDrive-Personal/Uni/4th_year/Honours_project/outputs/exons_included_SNP/${alt_assembly}_alignment_${asm}_mcall_DP1_chrom_alt_CDS_in.vcf.gz
-            
-            code_path=/Users/frankieswift/OneDrive/Uni/4th_year/Honours_project/
-            output_include=/Users/frankieswift/Library/CloudStorage/OneDrive-Personal/Uni/4th_year/Honours_project/outputs/exons_included_SNP/${alt_assembly}_alignment_${asm}_mcall_DP1_chrom_alt_CDS_in.vcf.gz
-            Assembly_info=/Users/frankieswift/OneDrive/Uni/4th_year/Honours_project/outputs/exons_included_SNP/Assembly_info/${alt_assembly}_assembly_info.txt
-            indel_finder=/Users/frankieswift/Library/CloudStorage/OneDrive-Personal/Uni/4th_year/Honours_project/outputs/exons_included_SNP/IndelFinder/${alt_assembly}_IndelFinder_CDS_trunc.txt
-            indel_binner_100=/Users/frankieswift/Library/CloudStorage/OneDrive-Personal/Uni/4th_year/Honours_project/outputs/exons_included_SNP/IndelBinner/hundred/${alt_assembly}_IndelBinner_100_CDS_trunc.txt
-            indel_binner_10000=/Users/frankieswift/Library/CloudStorage/OneDrive-Personal/Uni/4th_year/Honours_project/outputs/exons_included_SNP/IndelBinner/ten_thousand/${alt_assembly}_IndelBinner_10000_CDS_trunc.txt
-            chrom_text=/Users/frankieswift/OneDrive/Uni/4th_year/Honours_project/text_files/${set}/${alt_assembly}_chrom_num.txt
+            CDS_file=file/path/to/cds/positions
+            vcf_depth_filter_chrom_alt=path/to/bcftools/filter/alternative/chromosome/name/output/
+            CDS_include=path/to/cds/included/vcf/file/
 
-            python3 ${code_path}full_script_reborn.py -i ${output_include} -i2 ${chrom_text} -o ${Assembly_info} -o2 ${indel_finder} -o3 ${indel_binner_100} -o4 ${Indel_binner_10000}
+            code_path=path/to/where/scripts/are/stored
+            CDS_include=path/to/cds/included/vcf/file/
+            Assembly_info=path/to/output/
+            indel_finder=path/to/output/
+            indel_binner_100=path/to/output/
+            indel_binner_10000=path/to/output/
+            chrom_text=path/to/textfile/with/list/of/autosome/names/to/be/analysed 
+
+            python3 ${code_path}Assembly_information.py -i ${CDS_include} -i2 ${chrom_text} -o ${Assembly_info} -o2 ${indel_finder} -o3 ${indel_binner_100} -o4 ${Indel_binner_10000}
 
 
         #Sorting of the outputs for R 
-            asm=ASM10
             #sorting indel pos output - can then be loaded into R as a table before R then calculates the length of them! 
-                sed_indel_pos_input=/Users/frankieswift/Library/CloudStorage/OneDrive-Personal/Uni/4th_year/Honours_project/outputs/exons_included_SNP/IndelPos/${alt_assembly}_Indelpos_CDS_trunc.txt
-                indel_pos_sed_output=/Users/frankieswift/Library/CloudStorage/OneDrive-Personal/Uni/4th_year/Honours_project/outputs/exons_included_SNP/IndelPos/${alt_assembly}_Indelpos_CDS_sed_trunc.txt
+                sed_indel_pos_input=path/to/output/
+                indel_pos_sed_output=path/to/assembly/output/sedded/output
                 sed 's/\[//g' ${sed_indel_pos_input} |  sed 's/\]//g' |sed 's/\,//g' | sed "s/'//g" | > ${indel_pos_sed_output}
             
             #Sorting indel finder output - just removes brackets and stuff for loading into R
-                input_sed_indelfinder=/Users/frankieswift/Library/CloudStorage/OneDrive-Personal/Uni/4th_year/Honours_project/outputs/exons_included_SNP/IndelFinder/${alt_assembly}_IndelFinder_CDS_trunc.txt 
-                IndelFinder_sed_output=/Users/frankieswift/Library/CloudStorage/OneDrive-Personal/Uni/4th_year/Honours_project/outputs/exons_included_SNP/IndelFinder/${alt_assembly}_IndelFinder_CDS_sed_trunc.txt
+                input_sed_indelfinder=path/to/output/
+                IndelFinder_sed_output=path/to/assembly/output/sedded/output
                 sed 's/\[//g' ${input_sed_indelfinder} | sed 's/\]//g' | head > ${IndelFinder_sed_output}
                 
             #Sorting <100 indel binning output - removes brackets, gets column 1 to all the same decimal places so they can be sorted correctly and removes empty columns - also removes the > and < columns but these can still be seen in the orginal output
-                indel_binner_output=/Users/frankieswift/Library/CloudStorage/OneDrive-Personal/Uni/4th_year/Honours_project/outputs/exons_included_SNP/IndelBinner/100/${alt_assembly}_IndelBinner_100_CDS_trunc.txt
-                indel_binner_output_sed=/Users/frankieswift/Library/CloudStorage/OneDrive-Personal/Uni/4th_year/Honours_project/outputs/exons_included_SNP/IndelBinner/100/${alt_assembly}_IndelBinner_100_CDS_sed_trunc.txt
-                indel_binner_output_sed_r=/Users/frankieswift/Library/CloudStorage/OneDrive-Personal/Uni/4th_year/Honours_project/outputs/exons_included_SNP/IndelBinner/100/${alt_assembly}_IndelBinner_100_CDS_sed_r_trunc.txt
+                indel_binner_output=path/to/output/
+                indel_binner_output_sed=path/to/assembly/output/sedded/output
+                indel_binner_output_sed_r=path/to/assembly/output/sedded/output/R
 
                 sed 's/{//g' ${indel_binner_output} | sed 's/}//g' |  sed 's/'\''//g' |  sed 's/:/'\ '/g' | > save.txt
                 awk '{print $1}' save.txt |  awk '{printf ("%03d\n", $1)}' | > col_1.txt
@@ -352,8 +318,8 @@ cd /Users/frankieswift/OneDrive/Uni/4th_year/Honours_project/
                 sed 's/ /\t/g' ${indel_binner_output_sed} | sed 's/\t/,/g' | sed 's/$/,/g' | > ${indel_binner_output_sed_r} 
 
             #sorting indel binner up to 10,000 - more complex than <100 output as column 1 needs more work but does the same thing pretty much - also removes the > and < columns but these can still be seen in the orginal output 
-                indel_binner_output_10000=/Users/frankieswift/Library/CloudStorage/OneDrive-Personal/Uni/4th_year/Honours_project/outputs/exons_included_SNP/IndelBinner/10000/${alt_assembly}_IndelBinner_10000_CDS_trunc.txt
-                indel_binner_output_10000_sed=/Users/frankieswift/Library/CloudStorage/OneDrive-Personal/Uni/4th_year/Honours_project/outputs/exons_included_SNP/IndelBinner/10000/${alt_assembly}_IndelBinner_10000_exons_CDS_trunc.txt
+                indel_binner_output_10000=path/to/output/
+                indel_binner_output_10000_sed=path/to/assembly/output/sedded/output
                 sed 's/{//g' ${indel_binner_output_10000} | sed 's/}//g' |  sed 's/'\''//g' |  sed 's/:/'\ '/g' | > save.txt
                 awk '{print $1}' save.txt |  sed 's/-/'\ '/g' |  awk '{printf ("%05d\n", $1)}' | > column1_1.txt
                 awk '{print $1}' save.txt |  sed 's/-/'\ '/g' |  awk '{printf ("%05d\n", $2)}' | > column1_2.txt
@@ -366,28 +332,22 @@ cd /Users/frankieswift/OneDrive/Uni/4th_year/Honours_project/
 
     #Indel analysis
         #Intersect to get indels in cds
-            for i in {1..8} 
-            do 
-            echo $i
-            set=set$i
-            echo $set
-            big_textfile=/Users/frankieswift/OneDrive/Uni/4th_year/Honours_project/text_files/${set}.txt
-
+            big_textfile=path/to/textfile/
             for line in $(cat ${big_textfile})
                 do 
                 alt_assembly=$(echo ${line} | cut -d ";" -f 1 )
                 echo ${alt_assembly}
 
-                #Getting bed files rather than text
-                    indel_pos_sed_output_text=/Users/frankieswift/Library/CloudStorage/OneDrive-Personal/Uni/4th_year/Honours_project/outputs/IndelFinder/${alt_assembly}_IndelFinder_new_sed.txt
-                    rename_text_sed2=/Users/frankieswift/OneDrive/Uni/4th_year/Honours_project/outputs/IndelFinder/${alt_assembly}_IndelFinder_new_sed.bed
+                #Getting bed files rather than text, via renaming and then altering of file to get proper format
+                    indel_pos_sed_output_text=path/to/output/
+                    rename_text_sed2=path/to/output/with/new/bed/ending
                     cp ${indel_pos_sed_output_text} ${rename_text_sed2}
                 
-                    exon_file_short=/Volumes/Seagate/Frankie_DTOL_lep_project/gff/exon_only_files/${alt_assembly}_CDS_info_sorted_merged_short.bed
-                    exon_file_short_sed=/Volumes/Seagate/Frankie_DTOL_lep_project/gff/exon_only_files/${alt_assembly}_CDS_info_sorted_merged_short_sed.bed
-                    indel_pos_sed_output=/Users/frankieswift/OneDrive/Uni/4th_year/Honours_project/outputs/IndelFinder/${alt_assembly}_IndelFinder_new_sed.bed
-                    indel_pos_sed_output_sed=/Users/frankieswift/OneDrive/Uni/4th_year/Honours_project/outputs/IndelFinder/${alt_assembly}_IndelFinder_new_sed_ready.bed
-                    output=/Users/frankieswift/OneDrive/Uni/4th_year/Honours_project/outputs/IndelOverlapExon/raw/${alt_assembly}_indels_intersect_CDS_neww.bed
+                    CDS_file_short=path/to/CDS/postions/file
+                    CDS_file_short_sed=path/to/output/sed
+                    indel_pos_sed_output=path/to/output/
+                    indel_pos_sed_output_sed=path/to/assembly/output/sedded/output
+                    output=path/to/output/
                 
                 #Bedtools hates spaces so have to makesure input is tabbed and also that the indel pos jave 0 based column 2 and 1 based column 3:
                     sed 's/ /\t/g' ${exon_file_short} > ${exon_file_short_sed}
@@ -400,36 +360,36 @@ cd /Users/frankieswift/OneDrive/Uni/4th_year/Honours_project/
                 #Actual intersect command 
                     bedtools intersect -wao -a ${indel_pos_sed_output_sed} -b ${exon_file_short_sed} > ${output}
 
-        #R-STEPS
+        #R-STEPS - in R you sort the bedtools intersect output so that it is split into in cds and outwith cds region indels. We ignore indels that aren't fully in either.
             #this gets the assemblies ready to go through the indel dictionary sorter from r
             #Indels in CDS:
-                text_file=/Users/frankieswift/OneDrive/Uni/4th_year/Honours_project/text_files/all_gff_shell.txt
+                text_file=path/to/textfile
                 for line in $(cat ${text_file})
                     do 
                     alt_assembly=$(echo ${line} | cut -d ";" -f 1 )
                     echo ${alt_assembly} 
 
-                    indels_in_CDS_length=/Users/frankieswift/OneDrive/Uni/4th_year/Honours_project/R_results/Exons/Indels_in_exons/${alt_assembly}_Indels_in_CDS_trunc_raw_needs_sorted_new.csv
-                    output=/Users/frankieswift/OneDrive/Uni/4th_year/Honours_project/R_results/Exons/Indels_in_exons/${alt_assembly}_Indels_in_CDS_trunc_raw_needs_sorted_sed_new.csv
-
+                    indels_in_CDS_length=path/to/output/from/R
+                    output=path/to/output/
+                    
                     awk 'NR!=1{print $1}' ${indels_in_CDS_length} > ${output}
 
                 #Indel dictionary sorter from R
-                    text_file=/Users/frankieswift/OneDrive/Uni/4th_year/Honours_project/text_files/all_gff_shell.txt
+                    text_file=path/to/textfile
                     for line in $(cat ${text_file})
                         do 
                         alt_assembly=$(echo ${line} | cut -d ";" -f 1 )
                         echo ${alt_assembly} 
-                        code_path=/Users/frankieswift/OneDrive/Uni/4th_year/Honours_project/
-                        input=/Users/frankieswift/OneDrive/Uni/4th_year/Honours_project/R_results/Exons/Indels_in_exons/${alt_assembly}_Indels_in_CDS_trunc_raw_needs_sorted_sed_new.csv
-                        dict_100=/Users/frankieswift/OneDrive/Uni/4th_year/Honours_project/outputs/exons_included_SNP/R_indel_100_binner/${alt_assembly}_100_binner_r_indels_in_CDS_new.txt
-                        greater_than_100_dict=/Users/frankieswift/OneDrive/Uni/4th_year/Honours_project/outputs/exons_included_SNP/R_indel_greater_than_100_binner/${alt_assembly}_greater_than_100_binner_r_indels_in_CDS_new.txt
+                        code_path=path/to/where/scripts/are/stored
+                        input=path/to/output/from/r/of/indel/lengths
+                        dict_100=path/to/output/
+                        greater_than_100_dict=path/to/output/
 
-                        python3 ${code_path}/exon_R_indel_sorter.py -i ${input} -o ${dict_100} -o2 ${greater_than_100_dict}
+                        python3 ${code_path}/Indel_sorter.py -i ${input} -o ${dict_100} -o2 ${greater_than_100_dict}
 
-                        indel_binner_output=/Users/frankieswift/OneDrive/Uni/4th_year/Honours_project/outputs/exons_included_SNP/R_indel_100_binner/${alt_assembly}_100_binner_r_indels_in_CDS_new.txt
-                        indel_binner_output_sed=/Users/frankieswift/OneDrive/Uni/4th_year/Honours_project/outputs/exons_included_SNP/R_indel_100_binner/${alt_assembly}_100_binner_r_indels_in_CDS_sed_new.txt
-                        indel_binner_output_sed_r=/Users/frankieswift/OneDrive/Uni/4th_year/Honours_project/outputs/exons_included_SNP/R_indel_100_binner/${alt_assembly}_100_binner_r_indels_in_CDS_sed_r_new.txt
+                        indel_binner_output=/path/to/output/
+                        indel_binner_output_sed=path/to/assembly/output/sedded/output
+                        indel_binner_output_sed_r=path/to/assembly/output/sedded/output/R
 
                         sed 's/{//g' ${indel_binner_output} | sed 's/}//g' |  sed 's/'\''//g' |  sed 's/:/'\ '/g' | > save.txt
                         awk '{print $1}' save.txt |  awk '{printf ("%03d\n", $1)}' | > col_1.txt
@@ -439,35 +399,34 @@ cd /Users/frankieswift/OneDrive/Uni/4th_year/Honours_project/
                         sort -k 1 sorted.txt > ${indel_binner_output_sed} 
                         sed 's/ /\t/g' ${indel_binner_output_sed} | sed 's/\t/,/g' | sed 's/$/,/g' | > ${indel_binner_output_sed_r} 
 
-                #Indels outside CDS - getting lengths and disctionary sorting is all in one code file!
-                text_file=/Users/frankieswift/OneDrive/Uni/4th_year/Honours_project/text_files/all_gff_shell.txt
+                #Indels outside CDS 
+                text_file=path/to/textfile
                     for line in $(cat ${text_file})
                         do 
                         alt_assembly=$(echo ${line} | cut -d ";" -f 1 )
                         echo ${alt_assembly} 
                 
-                input_file=/Users/frankieswift/OneDrive/Uni/4th_year/Honours_project/R_results/Exons/Indels_not_in_exons/${alt_assembly}_Indels_not_in_CDS_trunc_raw_needs_sorted_new.csv
-                input_file_2=/Users/frankieswift/OneDrive/Uni/4th_year/Honours_project/R_results/Exons/Indels_not_in_exons/${alt_assembly}_Indels_not_in_CDS_trunc_raw_sorted_new.csv
-                sed 's/" //g' $input_file | sed 's/"//g' | sed 's/ //g' | sed 's/\t/,/g' | > $input_file_2
+                input_file=path/to/output/of/indels/outwith/cds/region/from/r
+                input_file_2=path/to/output/sedded
+                  sed 's/" //g' $input_file | sed 's/"//g' | sed 's/ //g' | sed 's/\t/,/g' | > $input_file_2
 
 
-                    text_file=/Users/frankieswift/OneDrive/Uni/4th_year/Honours_project/text_files/all_gff_shell.txt
+                    text_file=path/to/textfile
                     for line in $(cat ${text_file})
                         do 
                         alt_assembly=$(echo ${line} | cut -d ";" -f 1 )
                         echo ${alt_assembly} 
-                        code_path=/Users/frankieswift/OneDrive/Uni/4th_year/Honours_project/
-                        input_file_2=/Users/frankieswift/OneDrive/Uni/4th_year/Honours_project/R_results/Exons/Indels_not_in_exons/${alt_assembly}_Indels_not_in_CDS_trunc_raw_sorted_new.csv
-                        indel_total_lengths=/Users/frankieswift/OneDrive/Uni/4th_year/Honours_project/R_results/Exons/Indels_not_in_exons/${alt_assembly}_Indels_not_in_CDS_trunc_raw_sorted_lengths_new.csv
-                        dict_100=/Users/frankieswift/OneDrive/Uni/4th_year/Honours_project/outputs/exons_removed_SNP/R_indel_100_binner/${alt_assembly}_100_binner_r_indels_not_in_CDS_new.txt
-                        greater_than_100_dict=/Users/frankieswift/OneDrive/Uni/4th_year/Honours_project/outputs/exons_removed_SNP/R_indel_greater_than_100_binner/${alt_assembly}_greater_than_100_binner_r_indels_not_in_CDS_new.txt
-                        Number_of_indels=/Users/frankieswift/OneDrive/Uni/4th_year/Honours_project/R_results/Exons/Indels_not_in_exons/${alt_assembly}_number_of_indels_new.txt
+                        code_path=path/to/where/scripts/are/stored
+                        input_file_2=/path/to/output/sedded/from/above
+                        dict_100=/path/to/output/
+                        greater_than_100_dict=path/to/output
+                     
 
-                        python3 ${code_path}/Indels_outside_CDS_counter.py -i ${input_file_2} -o ${indel_total_lengths} -o2 ${dict_100} -o3 ${greater_than_100_dict} -o4 ${Number_of_indels}
+                        python3 ${code_path}/Indels_sorter.py  -i ${input_file_2} -o $ ${dict_100} -o2 ${greater_than_100_dict} 
 
-                        indel_binner_output=/Users/frankieswift/OneDrive/Uni/4th_year/Honours_project/outputs/exons_removed_SNP/R_indel_100_binner/${alt_assembly}_100_binner_r_indels_not_in_CDS_new.txt
-                        indel_binner_output_sed=/Users/frankieswift/OneDrive/Uni/4th_year/Honours_project/outputs/exons_removed_SNP/R_indel_100_binner/${alt_assembly}_100_binner_r_indels_not_in_CDS_sed_new.txt
-                        indel_binner_output_sed_r=/Users/frankieswift/OneDrive/Uni/4th_year/Honours_project/outputs/exons_removed_SNP/R_indel_100_binner/${alt_assembly}_100_binner_r_indels_not_in_CDS_sed_r_new.txt
+                        indel_binner_output=path/to/output/
+                        indel_binner_output_sed=path/to/assembly/output/sedded/output
+                        indel_binner_output_sed_r=path/to/assembly/output/sedded/output/R
                         sed 's/{//g' ${indel_binner_output} | sed 's/}//g' |  sed 's/'\''//g' |  sed 's/:/'\ '/g' | > save.txt
                         awk '{print $1}' save.txt |  awk '{printf ("%03d\n", $1)}' | > col_1.txt
                         awk '{print $2}' save.txt | > col_2.txt
@@ -476,22 +435,10 @@ cd /Users/frankieswift/OneDrive/Uni/4th_year/Honours_project/
                         sort -k 1 sorted.txt > ${indel_binner_output_sed} 
                         sed 's/ /\t/g' ${indel_binner_output_sed} | sed 's/\t/,/g' | sed 's/$/,/g' | > ${indel_binner_output_sed_r}
                         
-                        Number_of_indels=/Users/frankieswift/OneDrive/Uni/4th_year/Honours_project/R_results/Exons/Indels_not_in_exons/${alt_assembly}_number_of_indels_new.txt
-                        Number_of_indels_sed=/Users/frankieswift/OneDrive/Uni/4th_year/Honours_project/R_results/Exons/Indels_not_in_exons/${alt_assembly}_number_of_indels_sed_new.txt
-                        sed 's/{//g' ${Number_of_indels} | sed 's/}//g' | sed 's/'\''//g' | sed 's/Number_of_indels://g' | > ${Number_of_indels_sed}
-
-
-
 
 #Repeats analysis assembly info
     #Repeat_Regions, runs through the reference fasta and pulls out the positions of repeat regions
-        for i in {1..8} 
-        do 
-        echo $i
-        set=set$i
-        echo $set
-        
-        big_textfile=/Users/frankieswift/OneDrive/Uni/4th_year/Honours_project/text_files/${set}_full.txt
+        big_textfile=path/to/textfile/
         for line in $(cat ${big_textfile})
             do 
             alt_assembly=$(echo ${line} | cut -d ";" -f 1 )
@@ -499,32 +446,32 @@ cd /Users/frankieswift/OneDrive/Uni/4th_year/Honours_project/
             ref_GCA=$(echo ${line} | cut -d ";" -f 4 )
             echo ${alt_assembly} ${ref_assembly} ${ref_GCA}
 
-            code_path=/Users/frankieswift/OneDrive/Uni/4th_year/Honours_project/
-            chrom_names_R=/Users/frankieswift/OneDrive/Uni/4th_year/Honours_project/text_files/${set}/${alt_assembly}_chrom_R.txt
-            ref=/Users/frankieswift/OneDrive/Uni/4th_year/Honours_project/Fasta_files/${ref_GCA}/ncbi_dataset/data/${ref_GCA}/${ref_GCA}_${ref_assembly}_genomic.fna
-            Repeat_positions=/Users/frankieswift/OneDrive/Uni/4th_year/Honours_project/outputs/Repeat_regions/${alt_assembly}_repeat_regions.bed
-            Repeat_positions_sed=/Users/frankieswift/OneDrive/Uni/4th_year/Honours_project/outputs/Repeat_regions/${alt_assembly}_repeat_regions_sed.bed
+            code_path=path/to/where/scripts/are/stored
+            chrom_names=path/to/textfile/with/autosome/names
+            ref=path/to/reference/haplotype/fasta
+            Repeat_positions=path/to/output/
+            Repeat_positions_sed=path/to/output/sedded
             #repeat regions come out with correct bed file formatiing (col2=0 col3=1 based)
 
             python3 ${code_path}/Repeat_finder.py -i ${ref} -i2 ${chrom_names_R} -o ${Repeat_positions} 
             sed 's/\[//g' ${Repeat_positions} | sed 's/\]//g' | > ${Repeat_positions_sed}
   
-    #Intersecting the repeat regions with everything else regions 
-        big_textfile=/Users/frankieswift/OneDrive/Uni/4th_year/Honours_project/text_files/all_gff_shell.txt
+    #Intersecting the repeat regions with indels not in cds
+        big_textfile=path/to/textfile/
         for line in $(cat ${big_textfile})
             do 
             alt_assembly=$(echo ${line} | cut -d ";" -f 1 )
             echo ${alt_assembly} 
             
-            indels_not_in_CDS=/Users/frankieswift/OneDrive/Uni/4th_year/Honours_project/R_results/Exons/Indels_not_in_exons/${alt_assembly}_Indels_not_in_CDS_trunc_raw_needs_sorted_new.csv
-            indels_not_in_CDS_sed=/Users/frankieswift/OneDrive/Uni/4th_year/Honours_project/R_results/Exons/Indels_not_in_exons/${alt_assembly}_Indels_not_in_CDS_trunc_raw_needs_sorted_new_sed.bed
+            indels_not_in_CDS=path/to/output/
+            indels_not_in_CDS_sed=path/to/output/sedded
             awk 'NR!=1{print $0}' ${indels_not_in_CDS} | sed 's/ //g' | sed 's/"//g' | > ${indels_not_in_CDS_sed}
           
-            Repeat_positions_sed=/Users/frankieswift/OneDrive/Uni/4th_year/Honours_project/outputs/Repeat_regions/${alt_assembly}_repeat_regions_sed.bed
-            repeat_pos_ready=/Users/frankieswift/OneDrive/Uni/4th_year/Honours_project/outputs/Repeat_regions/${alt_assembly}_repeat_regions_sed_ready.bed
-            seddy_output=/Users/frankieswift/OneDrive/Uni/4th_year/Honours_project/outputs/Repeat_regions/${alt_assembly}_repeats_alt_Chrom.bed
-            repeat_pos_final=/Users/frankieswift/OneDrive/Uni/4th_year/Honours_project/outputs/Repeat_regions/final/${alt_assembly}_repeat_regions_sorted.bed
-            rename=/Users/frankieswift/Library/CloudStorage/OneDrive-Personal/Uni/4th_year/Honours_project/text_files/${alt_assembly}_rename.txt
+            Repeat_positions_sed=path/to/output/sedded
+            repeat_pos_ready=path/to/output/sedded/again
+            seddy_output=path/to/assembly/output/sedded/output
+            repeat_pos_final=path/to/output/final/for/this/section
+            rename=path/to/rename/text/file/with/long/chrom/names/then/tab/numeric/chrom/names
             
             sed 's/'\''//g' $Repeat_positions_sed | sed 's/,//g' | > ${repeat_pos_ready}
 
@@ -532,40 +479,39 @@ cd /Users/frankieswift/OneDrive/Uni/4th_year/Honours_project/
             awk '{print $4"\t"$2"\t"$3}' $seddy_output | > ${repeat_pos_final}
            
     
-            output=/Users/frankieswift/OneDrive/Uni/4th_year/Honours_project/outputs/IndelOverlapRepeat/${alt_assembly}_repeats_intersect_indels.bed
+            output=path/to/output/
             bedtools intersect -wao -a ${indels_not_in_CDS_sed} -b ${repeat_pos_final} > ${output}
 
-        #Python analysis - in repeats - go to R and get the inputs first 
-        text_file=/Users/frankieswift/OneDrive/Uni/4th_year/Honours_project/text_files/all_gff_shell.txt
+        #Python analysis - in repeats - go to R and split up the indels into in repeats and outwith repeats
+        text_file=path/to/textfile
                 for line in $(cat ${text_file})
                     do 
                     alt_assembly=$(echo ${line} | cut -d ";" -f 1 )
                     echo ${alt_assembly} 
 
-                    input=/Users/frankieswift/Library/CloudStorage/OneDrive-Personal/Uni/4th_year/Honours_project/R_results/Repeat_indels/Indels_fully_in_repeats/${alt_assembly}_Indels_in_repeats_trunc_raw_needs_sorted_new.csv
-                    output=/Users/frankieswift/Library/CloudStorage/OneDrive-Personal/Uni/4th_year/Honours_project/R_results/Repeat_indels/Indels_fully_in_repeats/${alt_assembly}_Indels_in_repeats_trunc_raw_sorted_new.csv
+                    input=path/to/output/ofindel/pos/in/repeats
+                    output=path/to/output/of/indel/pos/in/repeats/sedded
 
                     awk 'NR!=1{print $0}' ${input} | sed 's/ //g' | sed 's/""/"/g' | sed 's/"/,/g' | sed 's/,$//g' | > ${output}
                     
-                text_file=/Users/frankieswift/OneDrive/Uni/4th_year/Honours_project/text_files/all_gff_shell.txt
+                text_file=path/to/textfile
                 for line in $(cat ${text_file})
                     do 
                     alt_assembly=$(echo ${line} | cut -d ";" -f 1 )
                     echo ${alt_assembly} 
 
-                    code_path=/Users/frankieswift/OneDrive/Uni/4th_year/Honours_project/
-                    input_file=/Users/frankieswift/Library/CloudStorage/OneDrive-Personal/Uni/4th_year/Honours_project/R_results/Repeat_indels/Indels_fully_in_repeats/${alt_assembly}_Indels_in_repeats_trunc_raw_sorted_new.csv
-                    indel_total_lengths=/Users/frankieswift/OneDrive/Uni/4th_year/Honours_project/R_results/repeats/Indels_in_repeats/${alt_assembly}_Indels_in_repeats_trunc_raw_needs_sorted_lengths_new.csv
-                    dict_100=/Users/frankieswift/OneDrive/Uni/4th_year/Honours_project/outputs/repeats/indels_in_repeats/indel_100_binner/${alt_assembly}_100_binner_r_indels_in_repeats_new.txt
-                    greater_than_100_dict=/Users/frankieswift/OneDrive/Uni/4th_year/Honours_project/outputs/repeats/indels_in_repeats/Indels_greater_than_100_binner/${alt_assembly}_greater_than_100_binner_r_indels_in_repeats_new.txt
-                    Number_of_indels=/Users/frankieswift/OneDrive/Uni/4th_year/Honours_project/R_results/repeats/Indels_in_repeats/${alt_assembly}_number_of_indels_new.txt
+                    code_path=path/to/where/scripts/are/stored
+                    input_file=path/to/output/of/repeat/positions
+                    dict_100=/path/to/output/
+                    greater_than_100_dict=path/to/output/
+              
 
-                    python3 ${code_path}/Indels_outside_CDS_counter.py -i ${input_file_2} -o ${indel_total_lengths} -o2 ${dict_100} -o3 ${greater_than_100_dict} -o4 ${Number_of_indels}
+                    python3 ${code_path}/Indels_sorter.py -i ${input_file_2} -o1 ${dict_100} -o1 ${greater_than_100_dict} 
 
-                    indel_binner_output=/Users/frankieswift/OneDrive/Uni/4th_year/Honours_project/outputs/repeats/indels_in_repeats/indel_100_binner/${alt_assembly}_100_binner_r_indels_in_repeats_new.txt
-                    indel_binner_output_sed1=/Users/frankieswift/OneDrive/Uni/4th_year/Honours_project/outputs/repeats/indels_in_repeats/indel_100_binner/${alt_assembly}_100_binner_r_indels_in_repeats_new_sed1.txt
-                    indel_binner_output_sed=/Users/frankieswift/OneDrive/Uni/4th_year/Honours_project/outputs/repeats/indels_in_repeats/indel_100_binner/${alt_assembly}_100_binner_r_indels_in_repeats_new_sed.txt
-                    indel_binner_output_sed_r=/Users/frankieswift/OneDrive/Uni/4th_year/Honours_project/outputs/repeats/indels_in_repeats/indel_100_binner/${alt_assembly}_100_binner_r_indels_in_repeats_new_sed_r.txt
+                    indel_binner_output=path/to/output/
+                    indel_binner_output_sed1=path/to/assembly/output/sedded/output1
+                    indel_binner_output_sed=path/to/assembly/output/sedded/output
+                    indel_binner_output_sed_r=path/to/assembly/output/sedded/output/R
                     sed 's/{//g' ${indel_binner_output} | sed 's/}//g' |  sed 's/'\''//g' |  sed 's/:/'\ '/g' | > ${indel_binner_output_sed1}
                     awk '{print $1}' ${indel_binner_output_sed1} |  awk '{printf ("%03d\n", $1)}' | > col_1.txt
                     awk '{print $2}' ${indel_binner_output_sed1} | > col_2.txt
@@ -573,51 +519,41 @@ cd /Users/frankieswift/OneDrive/Uni/4th_year/Honours_project/
                     awk '$1!=0000' unsorted.txt > sorted.txt
                     sort -k 1 sorted.txt > ${indel_binner_output_sed} 
                     sed 's/ /\t/g' ${indel_binner_output_sed} | sed 's/\t/,/g' | sed 's/$/,/g' | > ${indel_binner_output_sed_r}
-                    
-                    cat $indel_binner_output_sed_r | less -S
-
-
-                    Number_of_indels=/Users/frankieswift/OneDrive/Uni/4th_year/Honours_project/R_results/repeats/Indels_in_repeats/${alt_assembly}_number_of_indels_new.txt
-                    Number_of_indels_sed=/Users/frankieswift/OneDrive/Uni/4th_year/Honours_project/R_results/repeats/Indels_in_repeats/${alt_assembly}_number_of_indels_new_sed.txt
-                    sed 's/{//g' ${Number_of_indels} | sed 's/}//g' | sed 's/'\''//g' | sed 's/Number_of_indels://g' | > ${Number_of_indels_sed}
-
-                    indel_total_lengths=/Users/frankieswift/OneDrive/Uni/4th_year/Honours_project/R_results/repeats/Indels_in_repeats/${alt_assembly}_Indels_in_repeats_trunc_raw_needs_sorted_lengths_new.csv
-                    indel_total_lengths_sed=/Users/frankieswift/OneDrive/Uni/4th_year/Honours_project/R_results/repeats/Indels_in_repeats/${alt_assembly}_Indels_in_repeats_trunc_raw_needs_sorted_lengths_new_sed.csv
-                    sed 's/\[//g' $indel_total_lengths | sed 's/\]//g' | sed 's/'\''//g' | >  $indel_total_lengths_sed 
+    
 
         #Python analysis - out repeats
 
-                    text_file=/Users/frankieswift/OneDrive/Uni/4th_year/Honours_project/text_files/all_gff_shell.txt
+                text_file=path/to/textfile
                 for line in $(cat ${text_file})
                     do 
                     alt_assembly=$(echo ${line} | cut -d ";" -f 1 )
                     echo ${alt_assembly} 
 
-                    input=/Users/frankieswift/Library/CloudStorage/OneDrive-Personal/Uni/4th_year/Honours_project/R_results/Repeat_indels/Indels_not_in_repeats/${alt_assembly}_Indels_not_in_repeats_trunc_raw_needs_sorted_new.csv
-                    output=/Users/frankieswift/Library/CloudStorage/OneDrive-Personal/Uni/4th_year/Honours_project/R_results/Repeat_indels/Indels_not_in_repeats/${alt_assembly}_Indels_not_in_repeats_trunc_raw_sorted_new.csv
-
+                    input=path/to/output/of/indels/not/in/repeats
+                    output=path/to/output/indels/not/in/repeats/sedded
 
                     awk 'NR!=1{print $0}' ${input} | sed 's/ //g' | sed 's/""/"/g' | sed 's/"/,/g' | sed 's/,$//g' | > ${output}
                     
                     
-                    text_file=/Users/frankieswift/OneDrive/Uni/4th_year/Honours_project/text_files/all_gff_shell.txt
+                    text_file=path/to/textfile
                     for line in $(cat ${text_file})
                         do 
                         alt_assembly=$(echo ${line} | cut -d ";" -f 1 )
                         echo ${alt_assembly} 
-                        code_path=/Users/frankieswift/OneDrive/Uni/4th_year/Honours_project/
-                        input_file=/Users/frankieswift/Library/CloudStorage/OneDrive-Personal/Uni/4th_year/Honours_project/R_results/Repeat_indels/Indels_not_in_repeats/${alt_assembly}_Indels_not_in_repeats_trunc_raw_sorted_new.csv
-                        indel_total_lengths=/Users/frankieswift/OneDrive/Uni/4th_year/Honours_project/R_results/repeats/Indels_not_in_repeats/${alt_assembly}_Indels_in_repeats_trunc_raw_needs_sorted_lengths_new.csv
-                        dict_100=/Users/frankieswift/OneDrive/Uni/4th_year/Honours_project/outputs/repeats/indels_not_in_repeats/indel_100_binner/${alt_assembly}_100_binner_r_indels_not_in_repeats_new.txt
-                        greater_than_100_dict=/Users/frankieswift/OneDrive/Uni/4th_year/Honours_project/outputs/repeats/indels_not_in_repeats/Indels_greater_than_100_binner/${alt_assembly}_greater_than_100_binner_r_indels_not_in_repeats_new.txt
-                        Number_of_indels=/Users/frankieswift/OneDrive/Uni/4th_year/Honours_project/R_results/repeats/Indels_not_in_repeats/${alt_assembly}_number_of_indels_new.txt
+                    
+                        code_path=path/to/where/scripts/are/stored
+                        input_file=path/to/output/of/indels/not/in/repeats/sedded
+                        indel_total_lengths=path/to/output/
+                        dict_100=path/to/output/
+                        greater_than_100_dict=path/to/output/
+                        Number_of_indels=path/to/output/
 
-                        python3 ${code_path}/Indels_outside_CDS_counter.py -i ${input_file} -o ${indel_total_lengths} -o2 ${dict_100} -o3 ${greater_than_100_dict} -o4 ${Number_of_indels}
+                        python3 ${code_path}/Indels_sorter.py -i ${input_file} -o ${dict_100} -o2 ${greater_than_100_dict} 
 
-                        indel_binner_output=/Users/frankieswift/OneDrive/Uni/4th_year/Honours_project/outputs/repeats/indels_not_in_repeats/indel_100_binner/${alt_assembly}_100_binner_r_indels_not_in_repeats_new.txt
-                        indel_binner_output_sed1=/Users/frankieswift/OneDrive/Uni/4th_year/Honours_project/outputs/repeats/indels_not_in_repeats/indel_100_binner/${alt_assembly}_100_binner_r_indels_not_in_repeats_new_sed1.txt
-                        indel_binner_output_sed=/Users/frankieswift/OneDrive/Uni/4th_year/Honours_project/outputs/repeats/indels_not_in_repeats/indel_100_binner/${alt_assembly}_100_binner_r_indels_not_in_repeats_new_sed.txt
-                        indel_binner_output_sed_r=/Users/frankieswift/OneDrive/Uni/4th_year/Honours_project/outputs/repeats/indels_not_in_repeats/indel_100_binner/${alt_assembly}_100_binner_r_indels_not_in_repeats_new_r.txt
+                        indel_binner_output=path/to/output/
+                        indel_binner_output_sed1=path/to/assembly/output/sedded/output1
+                        indel_binner_output_sed=path/to/assembly/output/sedded/output
+                        indel_binner_output_sed_r=path/to/assembly/output/sedded/output/r
                         sed 's/{//g' ${indel_binner_output} | sed 's/}//g' |  sed 's/'\''//g' |  sed 's/:/'\ '/g' | > ${indel_binner_output_sed1}
                         awk '{print $1}' ${indel_binner_output_sed1} |  awk '{printf ("%03d\n", $1)}' | > col_1.txt
                         awk '{print $2}' ${indel_binner_output_sed1} | > col_2.txt
@@ -625,35 +561,26 @@ cd /Users/frankieswift/OneDrive/Uni/4th_year/Honours_project/
                         awk '$1!=0000' unsorted.txt > sorted.txt
                         sort -k 1 sorted.txt > ${indel_binner_output_sed} 
                         sed 's/ /\t/g' ${indel_binner_output_sed} | sed 's/\t/,/g' | sed 's/$/,/g' | > ${indel_binner_output_sed_r}
-                        
-                        Number_of_indels=/Users/frankieswift/OneDrive/Uni/4th_year/Honours_project/R_results/repeats/Indels_not_in_repeats/${alt_assembly}_number_of_indels_new.txt
-                        Number_of_indels_sed=/Users/frankieswift/OneDrive/Uni/4th_year/Honours_project/R_results/repeats/Indels_not_in_repeats/${alt_assembly}_number_of_indels_new_sed.txt
-                        sed 's/{//g' ${Number_of_indels} | sed 's/}//g' | sed 's/'\''//g' | sed 's/Number_of_indels://g' | > ${Number_of_indels_sed}
-        
+                    
 
-                        indel_total_lengths=/Users/frankieswift/OneDrive/Uni/4th_year/Honours_project/R_results/repeats/Indels_not_in_repeats/${alt_assembly}_Indels_in_repeats_trunc_raw_needs_sorted_lengths_new.csv
-                        indel_total_lengths_sed=/Users/frankieswift/OneDrive/Uni/4th_year/Honours_project/R_results/repeats/Indels_not_in_repeats/${alt_assembly}_Indels_in_repeats_trunc_raw_needs_sorted_lengths_new_sed.csv
-                        sed 's/\[//g' $indel_total_lengths | sed 's/\]//g' | sed 's/'\''//g' | >  $indel_total_lengths_sed 
+                #making vcfs from the repeat regions
+                Repeat_positions_vcf=path/to/output/
+                vcf_depth_filter_chrom_alt=path/to/output/
+                repeats_output=path/to/output/
 
-
-                         #making vcfs from the repeat regions
-                Repeat_positions_vcf=/Users/frankieswift/OneDrive/Uni/4th_year/Honours_project/outputs/Repeat_regions/final/${alt_assembly}_repeat_regions_sorted.bed
-                vcf_depth_filter_chrom_alt=/Users/frankieswift/OneDrive/Uni/4th_year/Honours_project/outputs/vcf_depth_filter/${alt_assembly}_alignment_${asm}_mcall_DP1_chrom_alt.vcf.gz
-                repeats_output=/Users/frankieswift/Library/CloudStorage/OneDrive-Personal/Uni/4th_year/Honours_project/outputs/Repeat_regions/VCF/${alt_assembly}_alignment_${asm}_mcall_DP1_chrom_alt_repeats.vcf
-                
                 bcftools view ${vcf_depth_filter_chrom_alt} --targets-file ${Repeat_positions_vcf} -o ${repeats_output}
                 bgzip -f ${repeats_output}
                 bcftools index ${repeats_output}.gz
 
 
     #Getting snps for whole repeat regions - need for indel diversity denominator, already have indels from intersect!
-    code_path=/Users/frankieswift/OneDrive/Uni/4th_year/Honours_project
-    repeats_output=/Users/frankieswift/Library/CloudStorage/OneDrive-Personal/Uni/4th_year/Honours_project/outputs/Repeat_regions/VCF/${alt_assembly}_alignment_${asm}_mcall_DP1_chrom_alt_repeats.vcf
-    Assembly_info=/Users/frankieswift/Library/CloudStorage/OneDrive-Personal/Uni/4th_year/Honours_project/outputs/Repeat_regions/${alt_assembly}_repeats_total_snps.txt
-    chrom_text=/Users/frankieswift/OneDrive/Uni/4th_year/Honours_project/text_files/${set}/${alt_assembly}_chrom_num.txt
+    code_path=path/to/where/scripts/are/stored
+    repeats_output=path/to/output/
+    Assembly_info=path/to/assembly/information/output/
+    chrom_text=path/to/textfile/with/list/of/autosome/names/to/be/analysed 
 
-    python3 ${code_path}/fourD_snp_finder.py -i ${repeats_output}.gz -i2 ${chrom_text} -o ${Assembly_info} 
+    python3 ${code_path}/Snp_finder.py -i ${repeats_output}.gz -i2 ${chrom_text} -o ${Assembly_info} 
 
-    Assembly_info=/Users/frankieswift/Library/CloudStorage/OneDrive-Personal/Uni/4th_year/Honours_project/outputs/Repeat_regions/${alt_assembly}_repeats_total_snps.txt
-    Assembly_info_sed=/Users/frankieswift/Library/CloudStorage/OneDrive-Personal/Uni/4th_year/Honours_project/outputs/Repeat_regions/${alt_assembly}_repeats_total_snps_sed.txt
+    Assembly_info=path/to/assembly/information/output/
+    Assembly_info_sed=path/to/assembly/output/sedded/output
     sed 's/\[//g' ${Assembly_info} | sed 's/\]//g' | > ${Assembly_info_sed}
