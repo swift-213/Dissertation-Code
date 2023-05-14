@@ -360,7 +360,7 @@
                 #Actual intersect command 
                     bedtools intersect -wao -a ${indel_pos_sed_output_sed} -b ${exon_file_short_sed} > ${output}
 
-        #R-STEPS - in R you sort the bedtools intersect output so that it is split into in cds and outwith cds region indels. We ignore indels that aren't fully in either.
+        #R-STEPS - in R you sort the bedtools intersect output so that it is split into in cds and outwith cds region indels. We ignore indels that aren't fully in either. Indel lengths are also got in this step by substracting the start indel positions from end positions in R. 
             #this gets the assemblies ready to go through the indel dictionary sorter from r
             #Indels in CDS:
                 text_file=path/to/textfile
@@ -482,7 +482,7 @@
             output=path/to/output/
             bedtools intersect -wao -a ${indels_not_in_CDS_sed} -b ${repeat_pos_final} > ${output}
 
-        #Python analysis - in repeats - go to R and split up the indels into in repeats and outwith repeats
+        #Python analysis - in repeats - go to R and split up the indels into in repeats and outwith repeats. Indel lengths are also got in this step by substracting the start indel positions from end positions in R. 
         text_file=path/to/textfile
                 for line in $(cat ${text_file})
                     do 
