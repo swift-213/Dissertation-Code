@@ -15,14 +15,11 @@ output=args.output
 file1=open(chrom_file, 'r')
 
 Lines=file1.readlines()
-#print(Lines)
+
 chrom=[]
 for line in Lines:
     chrom.append("{}".format(line.strip()))
 
-
-#fasta_file='/Users/frankieswift/OneDrive/Uni/4th_year/Honours_project/Fasta_files/GCA_947086465.1/ncbi_dataset/data/GCA_947086465.1/GCA_947086465.1_ilEupExig1.1_genomic.fna'
-#chrom_file='/Users/frankieswift/OneDrive/Uni/4th_year/Honours_project/text_files/set4/ilEupExig1.1_chrom_R.txt'
 
 
 def parseFasta(string, makeUppercase=False):
@@ -35,8 +32,7 @@ def parseFasta(string, makeUppercase=False):
 
 with open(fasta_file) as f:
     allText = f.read()
-
-#take the j pos as the pos after repeat ended as this is the 1 based pos of the end seq (column 3 that needs to be 1 based). 
+ 
 
 names, seqs = parseFasta(allText)
 
