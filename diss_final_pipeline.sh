@@ -122,7 +122,7 @@ cd /Users/frankieswift/OneDrive/Uni/4th_year/Honours_project/
             code_path=/Users/frankieswift/OneDrive/Uni/4th_year/Honours_project/genomics_general/
             rename=/Users/frankieswift/Library/CloudStorage/OneDrive-Personal/Uni/4th_year/Honours_project/text_files/${alt_assembly}_rename.txt
             rename_four=/Users/frankieswift/Library/CloudStorage/OneDrive-Personal/Uni/4th_year/Honours_project/text_files/${alt_assembly}_rename.txt
-            gff=/Volumes/Seagate/Frankie_DTOL_lep_project/gff/files/${ref_GCA}-genes.gff3.gz
+            gff=/Volumes/Seagate/Frankie_DTOL_lep_project/gff/files/${ref_GCA}-genes.gff3
             ref=/Volumes/Seagate/Frankie_DTOL_lep_project/Fasta_files/${ref_GCA}/ncbi_dataset/data/${ref_GCA}/${ref_GCA}_${ref_assembly}_genomic.fna
             vcf_depth_filter_chrom_alt=/Users/frankieswift/OneDrive/Uni/4th_year/Honours_project/outputs/vcf_depth_filter/${alt_assembly}_alignment_${asm}_mcall_DP1_chrom_alt.vcf.gz
             four_D_output=/Users/frankieswift/OneDrive/Uni/4th_year/Honours_project/outputs/fourD_sites/${alt_assembly}_coding_site_types.tsv.gz
